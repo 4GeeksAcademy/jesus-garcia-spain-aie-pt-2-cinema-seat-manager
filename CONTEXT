@@ -5,6 +5,7 @@
 - 2026-06-08: Se crea este archivo para centralizar el contexto del proyecto.
 - 2026-06-08: Se agrega checklist inicial de tareas funcionales.
 - 2026-06-08: Se implementa la función reserveSingleSeat con enfoque inmutable y captura de fila/columna por consola.
+- 2026-06-08: Se agrega menú de consola "Reserve seat (R)" para solicitar fila/columna y aplicar reserveSingleSeat.
 
 ## Checklist
 
