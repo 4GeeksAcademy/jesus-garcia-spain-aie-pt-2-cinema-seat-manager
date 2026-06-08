@@ -1,0 +1,10 @@
+# CONTEXT
+
+## Actualizaciones
+
+- 2026-06-08: Se crea este archivo para centralizar el contexto del proyecto.
+- 2026-06-08: Se agrega checklist inicial de tareas funcionales.
+
+## Checklist
+
+- [ ] Reservar un asiento cambiando de 0 a 1 el valor del asiento.
