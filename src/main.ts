@@ -57,36 +57,76 @@ function reserveSingleSeat(room: RoomMatrix, row: number, column: number): RoomM
   });
 }
 
+function validateReservation(
+  room: RoomMatrix,
+  row: number,
+  column: number,
+): "SUCCEEDED" | "OCCUPIED" | "INVALID" {
+  const rowIndex = row - 1;
+  const columnIndex = column - 1;
+
+  if (rowIndex < 0 || rowIndex >= room.length) {
+    return "INVALID";
+  }
+
+  const totalColumns = room[rowIndex]?.length ?? 0;
+  if (columnIndex < 0 || columnIndex >= totalColumns) {
+    return "INVALID";
+  }
+
+  return room[rowIndex][columnIndex] === OCCUPIED ? "OCCUPIED" : "SUCCEEDED";
+}
+
+function countSeats(room: RoomMatrix, state: SeatState): {available: number; occupied: number, total: number} {
+  const available = room.flat().filter((seat) => seat === AVAILABLE).length;
+  const occupied = room.flat().filter((seat) => seat === OCCUPIED).length;
+  const total = available + occupied;
+  return { available, occupied, total };
+}
+
 async function runReservationFlow(): Promise<void> {
   let room = initializeRoom();
   printRoom(room);
 
-  // @ts-expect-error El proyecto no incluye tipos de Node por decisión del ejercicio.
+  // @ts-expect-error This exercise intentionally excludes Node type definitions.
   const { createInterface } = await import("node:readline/promises");
-  // @ts-expect-error El proyecto no incluye tipos de Node por decisión del ejercicio.
+  // @ts-expect-error This exercise intentionally excludes Node type definitions.
   const { stdin: input, stdout: output } = await import("node:process");
   const rl = createInterface({ input, output });
 
   try {
     while (true) {
+      const { available, occupied, total } = countSeats(room, AVAILABLE);
+      console.log(`\n - Number of available seats: ${available}`);
+      console.log(` - Number of occupied seats: ${occupied}`);
+      console.log(` - Total number of seats: ${total}`);
       console.log("\nReserve seat (R) | Quit (Q):");
       const action = (await rl.question("> ")).trim().toUpperCase();
 
       if (action === "Q") {
-        console.log("Saliendo...");
+        console.log("Exiting...");
         break;
       }
 
       if (action !== "R") {
-        console.log("Accion no reconocida. Usa R para reservar o Q para salir.");
+        console.log("Unknown action. Use R to reserve or Q to quit.");
         continue;
       }
 
-      const row = Number.parseInt((await rl.question("Fila: ")).trim(), 10);
-      const column = Number.parseInt((await rl.question("Columna: ")).trim(), 10);
-      room = reserveSingleSeat(room, row, column);
+      const row = Number.parseInt((await rl.question("Row: ")).trim(), 10);
+      const column = Number.parseInt((await rl.question("Column: ")).trim(), 10);
 
-      console.log("\nSala actualizada:");
+      const reservationStatus = validateReservation(room, row, column);
+      if (reservationStatus === "SUCCEEDED") {
+        room = reserveSingleSeat(room, row, column);
+        console.log("✅ Reservation succeeded ✅");
+      } else if (reservationStatus === "OCCUPIED") {
+        console.log("❌ Occupied ❌ - seat is already taken.");
+      } else {
+        console.log("❌ Invalid seat ❌ - row or column is out of bounds.");
+      }
+
+      console.log("\nUpdated room:");
       printRoom(room);
     }
   } finally {
@@ -96,4 +136,4 @@ async function runReservationFlow(): Promise<void> {
 
 await runReservationFlow();
 
-export { initializeRoom, printRoom, reserveSingleSeat, AVAILABLE, OCCUPIED };
+export { validateReservation, initializeRoom, printRoom, reserveSingleSeat, AVAILABLE, OCCUPIED };
