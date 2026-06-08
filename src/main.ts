@@ -4,16 +4,32 @@ type RoomMatrix = SeatState[][];
 const AVAILABLE: SeatState = 0;
 const OCCUPIED: SeatState = 1;
 
+/**
+ * Creates a room matrix with all seats marked as available.
+ * @param rows Total number of rows in the room.
+ * @param columns Total number of columns per row.
+ * @returns A 2D matrix representing seat availability.
+ */
 function initializeRoom(rows = 8, columns = 10): RoomMatrix {
   return Array.from({ length: rows }, () =>
     Array.from({ length: columns }, () => AVAILABLE),
   );
 }
 
+/**
+ * Converts the internal seat state to a printable label.
+ * L = free seat, X = occupied seat.
+ * @param seat Internal seat state.
+ * @returns Human-friendly label for terminal rendering.
+ */
 function seatToLabel(seat: SeatState): "L" | "X" {
   return seat === OCCUPIED ? "X" : "L";
 }
 
+/**
+ * Prints the current room state to the terminal.
+ * @param room Room matrix to render.
+ */
 function printRoom(room: RoomMatrix): void {
   const totalColumns = room[0]?.length ?? 0;
   const header = ["  ", ...Array.from({ length: totalColumns }, (_, i) => String(i + 1))]
@@ -29,6 +45,14 @@ function printRoom(room: RoomMatrix): void {
   });
 }
 
+/**
+ * Reserves one seat if it is valid and available.
+ * If the seat is invalid or already occupied, the original room is returned.
+ * @param room Current room matrix.
+ * @param row Target row (1-based).
+ * @param column Target column (1-based).
+ * @returns Updated room matrix.
+ */
 function reserveSingleSeat(room: RoomMatrix, row: number, column: number): RoomMatrix {
   const rowIndex = row - 1;
   const columnIndex = column - 1;
@@ -57,6 +81,13 @@ function reserveSingleSeat(room: RoomMatrix, row: number, column: number): RoomM
   });
 }
 
+/**
+ * Validates whether a reservation can be made for a specific seat.
+ * @param room Current room matrix.
+ * @param row Target row (1-based).
+ * @param column Target column (1-based).
+ * @returns Reservation validation status: SUCCEEDED, OCCUPIED, or INVALID.
+ */
 function validateReservation(
   room: RoomMatrix,
   row: number,
@@ -77,6 +108,14 @@ function validateReservation(
   return room[rowIndex][columnIndex] === OCCUPIED ? "OCCUPIED" : "SUCCEEDED";
 }
 
+/**
+ * Tries to reserve two seats together in the same row:
+ * first the selected seat, then the left seat; if not possible, then the right seat.
+ * @param room Current room matrix.
+ * @param row Target row (1-based).
+ * @param column Target column (1-based).
+ * @returns Updated room and a status describing the outcome.
+ */
 function reserveSeatWithNeighbor(
   room: RoomMatrix,
   row: number,
@@ -116,6 +155,11 @@ function reserveSeatWithNeighbor(
   return { room, status: "NO_ADJACENT_AVAILABLE" };
 }
 
+/**
+ * Counts available, occupied, and total seats.
+ * @param room Current room matrix.
+ * @returns Seat counters summary.
+ */
 function countSeats(room: RoomMatrix): { available: number; occupied: number; total: number } {
   const available = room.flat().filter((seat) => seat === AVAILABLE).length;
   const occupied = room.flat().filter((seat) => seat === OCCUPIED).length;
@@ -123,6 +167,10 @@ function countSeats(room: RoomMatrix): { available: number; occupied: number; to
   return { available, occupied, total };
 }
 
+/**
+ * Runs the interactive terminal flow for seat reservations.
+ * Supports single-seat reservations (R), two-seat reservations (T), and quit (Q).
+ */
 async function runReservationFlow(): Promise<void> {
   let room = initializeRoom();
   printRoom(room);
