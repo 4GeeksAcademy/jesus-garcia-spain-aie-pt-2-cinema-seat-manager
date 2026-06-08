@@ -77,7 +77,46 @@ function validateReservation(
   return room[rowIndex][columnIndex] === OCCUPIED ? "OCCUPIED" : "SUCCEEDED";
 }
 
-function countSeats(room: RoomMatrix, state: SeatState): {available: number; occupied: number, total: number} {
+function reserveSeatWithNeighbor(
+  room: RoomMatrix,
+  row: number,
+  column: number,
+): {
+  room: RoomMatrix;
+  status:
+    | "INVALID"
+    | "OCCUPIED"
+    | "RESERVED_WITH_LEFT"
+    | "RESERVED_WITH_RIGHT"
+    | "NO_ADJACENT_AVAILABLE";
+} {
+  const selectedSeatStatus = validateReservation(room, row, column);
+  if (selectedSeatStatus === "INVALID") {
+    return { room, status: "INVALID" };
+  }
+
+  if (selectedSeatStatus === "OCCUPIED") {
+    return { room, status: "OCCUPIED" };
+  }
+
+  const leftSeatStatus = validateReservation(room, row, column - 1);
+  if (leftSeatStatus === "SUCCEEDED") {
+    let updatedRoom = reserveSingleSeat(room, row, column);
+    updatedRoom = reserveSingleSeat(updatedRoom, row, column - 1);
+    return { room: updatedRoom, status: "RESERVED_WITH_LEFT" };
+  }
+
+  const rightSeatStatus = validateReservation(room, row, column + 1);
+  if (rightSeatStatus === "SUCCEEDED") {
+    let updatedRoom = reserveSingleSeat(room, row, column);
+    updatedRoom = reserveSingleSeat(updatedRoom, row, column + 1);
+    return { room: updatedRoom, status: "RESERVED_WITH_RIGHT" };
+  }
+
+  return { room, status: "NO_ADJACENT_AVAILABLE" };
+}
+
+function countSeats(room: RoomMatrix): { available: number; occupied: number; total: number } {
   const available = room.flat().filter((seat) => seat === AVAILABLE).length;
   const occupied = room.flat().filter((seat) => seat === OCCUPIED).length;
   const total = available + occupied;
@@ -96,11 +135,11 @@ async function runReservationFlow(): Promise<void> {
 
   try {
     while (true) {
-      const { available, occupied, total } = countSeats(room, AVAILABLE);
+      const { available, occupied, total } = countSeats(room);
       console.log(`\n - Number of available seats: ${available}`);
       console.log(` - Number of occupied seats: ${occupied}`);
       console.log(` - Total number of seats: ${total}`);
-      console.log("\nReserve seat (R) | Quit (Q):");
+      console.log("\nReserve seat (R) | Reserve seat + next seat (T) | Quit (Q):");
       const action = (await rl.question("> ")).trim().toUpperCase();
 
       if (action === "Q") {
@@ -108,22 +147,50 @@ async function runReservationFlow(): Promise<void> {
         break;
       }
 
-      if (action !== "R") {
-        console.log("Unknown action. Use R to reserve or Q to quit.");
+      if (action !== "R" && action !== "T") {
+        console.log("Unknown action. Use R, T or Q.");
         continue;
       }
 
       const row = Number.parseInt((await rl.question("Row: ")).trim(), 10);
       const column = Number.parseInt((await rl.question("Column: ")).trim(), 10);
 
-      const reservationStatus = validateReservation(room, row, column);
-      if (reservationStatus === "SUCCEEDED") {
-        room = reserveSingleSeat(room, row, column);
-        console.log("✅ Reservation succeeded ✅");
-      } else if (reservationStatus === "OCCUPIED") {
-        console.log("❌ Occupied ❌ - seat is already taken.");
+      if (action === "R") {
+        const reservationStatus = validateReservation(room, row, column);
+        if (reservationStatus === "SUCCEEDED") {
+          room = reserveSingleSeat(room, row, column);
+          console.log("✅ Reservation succeeded.");
+        } else if (reservationStatus === "OCCUPIED") {
+          console.log("❌ Occupied - seat is already taken.");
+        } else {
+          console.log("❌ Invalid seat - row or column is out of bounds.");
+        }
       } else {
-        console.log("❌ Invalid seat ❌ - row or column is out of bounds.");
+        const togetherReservation = reserveSeatWithNeighbor(room, row, column);
+
+        if (togetherReservation.status === "RESERVED_WITH_LEFT") {
+          room = togetherReservation.room;
+          console.log(`Reservation succeeded. Adjacent seat reserved at column ${column - 1}.`);
+        } else if (togetherReservation.status === "RESERVED_WITH_RIGHT") {
+          room = togetherReservation.room;
+          console.log(`Reservation succeeded. Adjacent seat reserved at column ${column + 1}.`);
+        } else if (togetherReservation.status === "NO_ADJACENT_AVAILABLE") {
+          console.log("⚠️  Could not reserve 2 seats together. No adjacent seat available.");
+          const reserveOnlyOne = (await rl.question("Do you want to reserve only the selected seat? (Y/N): "))
+            .trim()
+            .toUpperCase();
+
+          if (reserveOnlyOne === "Y") {
+            room = reserveSingleSeat(room, row, column);
+            console.log("✅ Reserved only the selected seat.");
+          } else {
+            console.log("ℹ️  Reservation canceled.");
+          }
+        } else if (togetherReservation.status === "OCCUPIED") {
+          console.log("❌ Occupied - selected seat is already taken.");
+        } else {
+          console.log("❌ Invalid seat - row or column is out of bounds.");
+        }
       }
 
       console.log("\nUpdated room:");
@@ -136,4 +203,12 @@ async function runReservationFlow(): Promise<void> {
 
 await runReservationFlow();
 
-export { validateReservation, initializeRoom, printRoom, reserveSingleSeat, AVAILABLE, OCCUPIED };
+export {
+  validateReservation,
+  reserveSeatWithNeighbor,
+  initializeRoom,
+  printRoom,
+  reserveSingleSeat,
+  AVAILABLE,
+  OCCUPIED,
+};
