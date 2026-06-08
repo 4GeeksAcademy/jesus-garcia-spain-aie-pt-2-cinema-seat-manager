@@ -29,7 +29,40 @@ function printRoom(room: RoomMatrix): void {
   });
 }
 
+function reserveSingleSeat(room: RoomMatrix, row: number, column: number): RoomMatrix {
+  const rowIndex = row - 1;
+  const columnIndex = column - 1;
+
+  if (rowIndex < 0 || rowIndex >= room.length) {
+    return room;
+  }
+
+  const totalColumns = room[rowIndex]?.length ?? 0;
+  if (columnIndex < 0 || columnIndex >= totalColumns) {
+    return room;
+  }
+
+  if (room[rowIndex][columnIndex] === OCCUPIED) {
+    return room;
+  }
+
+  return room.map((roomRow, currentRowIndex) => {
+    if (currentRowIndex !== rowIndex) {
+      return roomRow;
+    }
+
+    return roomRow.map((seat, currentColumnIndex) =>
+      currentColumnIndex === columnIndex ? OCCUPIED : seat,
+    );
+  });
+}
+
 const room = initializeRoom();
 printRoom(room);
 
-export { initializeRoom, printRoom, AVAILABLE, OCCUPIED };
+const updatedRoom = reserveSingleSeat(room, 3, 5);
+
+console.log("\nSala actualizada:");
+printRoom(updatedRoom);
+
+export { initializeRoom, printRoom, reserveSingleSeat, AVAILABLE, OCCUPIED };

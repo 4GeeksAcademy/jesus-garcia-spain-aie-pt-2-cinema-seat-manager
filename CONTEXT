@@ -4,7 +4,10 @@
 
 - 2026-06-08: Se crea este archivo para centralizar el contexto del proyecto.
 - 2026-06-08: Se agrega checklist inicial de tareas funcionales.
+- 2026-06-08: Se implementa la función reserveSingleSeat con enfoque inmutable y captura de fila/columna por consola.
 
 ## Checklist
 
-- [ ] Reservar un asiento cambiando de 0 a 1 el valor del asiento.
+- [x] Inicializar Sala con initializeRoom.
+- [x] Mostrar la sala de cine utilizando una función llamada printRoom.
+- [x] Reservar un asiento cambiando de 0 a 1 el valor del asiento: reserveSingleSeat
