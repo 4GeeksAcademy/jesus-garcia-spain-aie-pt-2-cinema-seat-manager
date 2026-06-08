@@ -1,0 +1,40 @@
+# CONTEXT
+
+## Actualizaciones
+
+- 2026-06-08: Se crea este archivo para centralizar el contexto del proyecto.
+- 2026-06-08: Se agrega checklist inicial de tareas funcionales.
+- 2026-06-08: Se implementa la función reserveSingleSeat con enfoque inmutable y captura de fila/columna por consola.
+- 2026-06-08: Se agrega menú de consola "Reserve seat (R)" para solicitar fila/columna y aplicar reserveSingleSeat.
+- 2026-06-08: Se agrega validateReservation para diferenciar estados SUCCEEDED, OCCUPIED e INVALID antes de reservar.
+- 2026-06-08: Se unifican los mensajes de usuario a inglés en prompts y feedback de consola.
+- 2026-06-08: Se agrega countSeats para mostrar asientos disponibles, ocupados y total en cada iteración.
+- 2026-06-08: Se implementa la acción (T) con reserveSeatWithNeighbor para reservar asiento seleccionado + adyacente (izquierda primero, luego derecha).
+- 2026-06-08: Si no hay adyacente disponible en (T), se muestra advertencia y se pregunta al usuario si desea reservar solo el asiento seleccionado.
+- 2026-06-08: Se incorporan iconos en mensajes de éxito, error, advertencia e información para mejorar la experiencia en terminal.
+- 2026-06-08: Se añaden comentarios JSDoc encima de las funciones para soporte de hover en VS Code.
+
+## Checklist
+
+- [x] Inicializar Sala con initializeRoom.
+- [x] Mostrar la sala de cine utilizando una función llamada printRoom.
+- [x] Reservar un asiento cambiando de 0 a 1 el valor del asiento: reserveSingleSeat
+- [x] Reservar un asiento y su adyacente
+- [x] Validar reserva con estados explícitos (SUCCEEDED/OCCUPIED/INVALID).
+- [x] Agregar comando (T) para reserva doble con prioridad de asiento izquierdo.
+- [x] Mostrar advertencia si no se pueden reservar 2 asientos y permitir confirmar reserva de 1 asiento.
+- [x] Mostrar contadores de asientos (available/occupied/total).
+- [x] Estandarizar mensajes al usuario en inglés.
+- [x] Documentar funciones con JSDoc para tooltips en editor.
+
+## Comportamiento actual (resumen)
+
+- Acción R: intenta reservar un único asiento.
+- Acción T: intenta reservar el asiento elegido y un asiento adyacente en la misma fila (columna izquierda primero; si no es posible, columna derecha).
+- Si T no puede reservar adyacente: solicita confirmación para reservar solo un asiento (Y/N).
+- Acción Q: cierra la aplicación.
+
+## Nota de mantenimiento
+
+- La lógica principal está centralizada en src/main.ts.
+- Las funciones exportadas permiten extender pruebas o separar módulos en futuras iteraciones.
